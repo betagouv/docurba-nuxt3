@@ -1,0 +1,21 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@json2csv/node": "^7.0.6",
+    "@nuxt/eslint": "^0.3.13",
+    "@supabase/supabase-js": "^2.44.2",
+    "dayjs": "^1.11.11",
+    "lodash": "^4.17.21",
+    "nuxt": "^3.12.3",
+    "vue": "latest"
+  }
+}
