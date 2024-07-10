@@ -62,21 +62,20 @@ function findEventByType(events, types) {
 }
 
 function filterProcedures(procedures) {
-  const sortedProcedures = sortProceduresByEvenCateg(procedures, 'prescription')
+  const proceduresByStatus = _.groupBy(procedures, 'status')
 
-  let opposables = sortedProcedures.filter(p => p.status === 'opposable')
-  opposables = sortProceduresByEvenCateg(opposables, 'prescription')
-
-  let currents = sortedProcedures.filter(p => p.status === 'en cours').filter((p) => {
+  const opposables = proceduresByStatus['opposable'] || []
+  const currents = (proceduresByStatus['en cours'] || []).filter((p) => {
     return p.from_sudocuh ? !!p.prescription : true
   })
-  currents = sortProceduresByEvenCateg(currents, 'prescription')
 
-  return { procedures: sortedProcedures, opposables, currents }
+  return {
+    opposables: sortProceduresByEvenCateg(opposables, 'prescription'),
+    currents: sortProceduresByEvenCateg(currents, 'prescription')
+  }
 }
 
 async function enrichProcedures(inseeCode, procedures) {
-  const time = Date.now()
   return await Promise.all(procedures.filter(p => !p.archived).map(async (procedure) => {
     const eventsByType = {}
 
@@ -99,14 +98,11 @@ async function enrichProcedures(inseeCode, procedures) {
 
     enrichedProcedure.docType = getFullDocType(enrichedProcedure)
 
-    console.log('Eriched Procedure in', inseeCode, (Date.now() - time) / 1000)
-
     return enrichedProcedure
   }))
 }
 
 async function getCommuneMetadata(commune) {
-  const time = Date.now()
   const departement = await findDepartement({ code: commune.departementCode })
   const region = await findRegion({ code: commune.regionCode })
   const groupement = await findGroupement({ code: commune.intercommunaliteCode })
@@ -123,8 +119,6 @@ async function getCommuneMetadata(commune) {
     delete intercommunalite.departement.communes
   }
 
-  console.log('getCommuneMetadata in', commune.code, (Date.now() - time) / 1000)
-
   return Object.assign({
     cog: '2024',
     nouvelle: await isCommuneNouvelle(commune.code),
@@ -139,16 +133,14 @@ async function enrichCommune(commune, procedures) {
   const enrichedProcedures = await enrichProcedures(commune.code, procedures)
 
   const {
-    procedures: scots,
     opposables: scotOpposables,
     currents: scotCurrents
-  } = filterProcedures(enrichedProcedures.filter(p => p.doc_type === 'SCOT'))
+  } = filterProcedures(enrichedProcedures.filter(p => p.doc_type === 'SCOT'), true)
 
   const scotOpposable = scotOpposables[0]
   const scotCurrent = scotCurrents[0]
 
   const {
-    procedures: plans,
     opposables: planOpposables,
     currents: planCurrents
   } = filterProcedures(enrichedProcedures.filter(p => p.doc_type !== 'SCOT'))
@@ -164,7 +156,7 @@ async function enrichCommune(commune, procedures) {
 
   const collectivitePorteuse = (planCurrent || planOpposable)?.collectivite_porteuse_id || commune.code
 
-  let porteuse = collectivitePorteuse.length > 5 ? await findGroupement({ code: collectivitePorteuse }) : await findCommune({ type: 'COM', code: collectivitePorteuse })
+  let porteuse = collectivitePorteuse.length > 5 ? await findGroupement({ code: collectivitePorteuse }) : Object.assign({}, commune)
 
   if (!porteuse) {
     for (const i in commune.groupements) {
@@ -199,13 +191,9 @@ async function enrichCommune(commune, procedures) {
 }
 
 export default async function (commune, procedures) {
-  const time = Date.now()
+  // const time = Date.now()
+  const enrichedCommune = await enrichCommune(commune, procedures)
+  // console.log('finished enrichement', commune.code, (Date.now() - time) / 1000)
+  return enrichedCommune
 
-  try {
-    const enrichedCommune = await enrichCommune(commune, procedures)
-    console.log('finished enrichement', commune.code, (Date.now() - time) / 1000)
-    return enrichedCommune
-  } catch (err) {
-    console.log('Error commune', commune.code, err)
-  }
 }
