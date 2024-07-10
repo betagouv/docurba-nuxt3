@@ -76,6 +76,7 @@ function filterProcedures(procedures) {
 }
 
 async function enrichProcedures(inseeCode, procedures) {
+  const time = Date.now()
   return await Promise.all(procedures.filter(p => !p.archived).map(async (procedure) => {
     const eventsByType = {}
 
@@ -98,11 +99,14 @@ async function enrichProcedures(inseeCode, procedures) {
 
     enrichedProcedure.docType = getFullDocType(enrichedProcedure)
 
+    console.log('Eriched Procedure in', inseeCode, (Date.now() - time) / 1000)
+
     return enrichedProcedure
   }))
 }
 
 async function getCommuneMetadata(commune) {
+  const time = Date.now()
   const departement = await findDepartement({ code: commune.departementCode })
   const region = await findRegion({ code: commune.regionCode })
   const groupement = await findGroupement({ code: commune.intercommunaliteCode })
@@ -118,6 +122,8 @@ async function getCommuneMetadata(commune) {
     delete intercommunalite.membres
     delete intercommunalite.departement.communes
   }
+
+  console.log('getCommuneMetadata in', commune.code, (Date.now() - time) / 1000)
 
   return Object.assign({
     cog: '2024',
