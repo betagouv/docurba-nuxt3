@@ -194,7 +194,12 @@ async function enrichCommune(commune, procedures) {
 
 export default async function (commune, procedures) {
   const time = Date.now()
-  const enrichedCommune = await enrichCommune(commune, procedures)
+
+  try {
+    const enrichedCommune = await enrichCommune(commune, procedures)
+  } catch (err) {
+    console.log('Error commune', commune.code, err)
+  }
 
   console.log('finished enrichement', commune.code, (Date.now() - time) / 1000)
 
