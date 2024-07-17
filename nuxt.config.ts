@@ -4,6 +4,12 @@ export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
   devtools: { enabled: true },
   routeRules: {
+    "/api/**": {
+      cors: true,
+      headers: {
+        "access-control-allow-methods": "GET",
+      },
+    },
     "/api/urba/exports/**": {
       headers: {
         "Content-Type": "text/csv",
