@@ -2,7 +2,9 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const communes = await getCommunesProcedures(query)
 
-  // console.log(communes[0])
+  communes.forEach(c => {
+    console.log(c.code, c.region.intitule)
+  })
 
   return communes
 })

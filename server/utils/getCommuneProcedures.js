@@ -119,6 +119,8 @@ async function getCommuneMetadata(commune) {
     delete intercommunalite.departement.communes
   }
 
+  console.log(region.intitule, commune.region)
+
   return Object.assign({
     cog: '2024',
     nouvelle: await isCommuneNouvelle(commune.code),
