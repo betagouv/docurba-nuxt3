@@ -1,0 +1,56 @@
+export default defineEventHandler(async (event) => {
+    const procedureId = getRouterParam(event, 'procedureId')
+
+    const {data: procedurePerim, error} = await supabase.from('procedures_perimetres')
+      .select('*').eq('procedure_id', procedureId)
+
+    const procedures = await fetchProcedures(procedurePerim.map(c => c.collectivite_code))
+
+    for (let i = 0; i < procedurePerim.length; i++) {
+      const {collectivite_code, collectivite_type} = procedurePerim[i]
+      const commune = await findCommune({type: collectivite_type, code: collectivite_code})
+
+      const communeProcedures = procedures.filter(p => {
+        return !!p.procedures_perimetres.find(c => {
+          return c.collectivite_code === commune.code && c.collectivite_type === commune.type
+        })
+      })
+
+      const enrichedCommune = await getCommuneProcedures(commune, communeProcedures)
+
+      const plan = enrichedCommune.planOpposable
+      const scot = enrichedCommune.scotOpposable
+
+      console.log(collectivite_code, collectivite_type)
+      console.log('plan opposable', plan.id)
+      console.log('scot opposable', scot.id)
+
+      await supabase.from('procedures_perimetres').update({
+        opposable: false
+      }).match({
+        collectivite_code,
+        collectivite_type
+      })
+
+      if(plan) {
+        await supabase.from('procedures_perimetres').update({
+          opposable: true
+        }).match({
+          collectivite_code,
+          collectivite_type,
+          procedure_id: plan.id
+        })
+      }
+
+      if(scot) {
+        await supabase.from('procedures_perimetres').update({
+          opposable: true
+        }).match({
+          collectivite_code,
+          collectivite_type,
+          procedure_id: scot.id
+        })
+      }
+    }
+  })
+  
