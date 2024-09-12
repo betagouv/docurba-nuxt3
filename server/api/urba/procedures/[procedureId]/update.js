@@ -22,8 +22,6 @@ export default defineEventHandler(async (event) => {
       const scot = enrichedCommune.scotOpposable
 
       console.log(collectivite_code, collectivite_type)
-      console.log('plan opposable', plan.id)
-      console.log('scot opposable', scot.id)
 
       await supabase.from('procedures_perimetres').update({
         opposable: false
@@ -33,6 +31,8 @@ export default defineEventHandler(async (event) => {
       })
 
       if(plan) {
+        console.log('plan opposable', plan.id)
+
         await supabase.from('procedures_perimetres').update({
           opposable: true
         }).match({
@@ -43,6 +43,8 @@ export default defineEventHandler(async (event) => {
       }
 
       if(scot) {
+        console.log('scot opposable', scot.id)
+
         await supabase.from('procedures_perimetres').update({
           opposable: true
         }).match({
