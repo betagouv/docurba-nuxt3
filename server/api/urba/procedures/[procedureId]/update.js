@@ -3,7 +3,7 @@ async function updateStatus (procedureId) {
       .select('*').eq('procedure_id', procedureId)
 
     if(error) {
-      console.log('error in updateStatus', error)
+      console.log('error in updateStatus', error, procedureId)
     }
 
     if(procedurePerim && procedurePerim.length) {
