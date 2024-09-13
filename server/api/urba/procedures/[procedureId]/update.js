@@ -2,6 +2,12 @@ async function updateStatus (procedureId) {
   const {data: procedurePerim, error} = await supabase.from('procedures_perimetres')
       .select('*').eq('procedure_id', procedureId)
 
+    if(error) {
+      console.log('error in updateStatus', error)
+    }
+
+    if(procedurePerim && procedurePerim.length) {
+
     const procedures = await fetchProcedures(procedurePerim.map(c => c.collectivite_code))
 
     for (let i = 0; i < procedurePerim.length; i++) {
@@ -52,6 +58,11 @@ async function updateStatus (procedureId) {
         })
       }
     }
+
+    console.log('finished update status', procedurePerim.length)
+  } else {
+    console.log('no perim found')
+  }
 }
 
 export default defineEventHandler(async (event) => {
