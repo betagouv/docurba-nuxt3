@@ -67,7 +67,9 @@ async function updateStatus (procedureId) {
 
 export default defineEventHandler(async (event) => {
     const procedureId = getRouterParam(event, 'procedureId')
-    updateStatus(procedureId)
+    updateStatus(procedureId).then(() => {
+      console.log('Executed status update')
+    })
 
     return 'OK'
   })
