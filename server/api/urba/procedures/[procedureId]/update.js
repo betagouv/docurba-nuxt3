@@ -1,7 +1,5 @@
-export default defineEventHandler(async (event) => {
-    const procedureId = getRouterParam(event, 'procedureId')
-
-    const {data: procedurePerim, error} = await supabase.from('procedures_perimetres')
+async function updateStatus (procedureId) {
+  const {data: procedurePerim, error} = await supabase.from('procedures_perimetres')
       .select('*').eq('procedure_id', procedureId)
 
     const procedures = await fetchProcedures(procedurePerim.map(c => c.collectivite_code))
@@ -54,5 +52,12 @@ export default defineEventHandler(async (event) => {
         })
       }
     }
+}
+
+export default defineEventHandler(async (event) => {
+    const procedureId = getRouterParam(event, 'procedureId')
+    updateStatus(procedureId)
+
+    return 'OK'
   })
   
