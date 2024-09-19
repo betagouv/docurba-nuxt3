@@ -19,7 +19,6 @@
     "pa_date_approbation_precedent": "opposables[1].approbation.date_iso",
     "pa_date_fin_echeance": "opposable.fin.date_iso",
     "pa_nombre_communes": "opposable.procedures_perimetres.length",
-    "pa_nombre_communes_zone_blanche": "opposable.zonesBlanche.length",
     "pc_nom_schema": "current.name",
     "pc_id": "current.id",
     "pc_noserie_procedure": "current.from_sudocuh",

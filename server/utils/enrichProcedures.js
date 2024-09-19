@@ -52,6 +52,11 @@ export default async function (procedures) {
 
     Object.keys(eventsCategs).forEach((key) => {
       eventsByType[key] = findEventByType(events, eventsCategs[key])
+
+      // Add year
+      if(eventsByType[key]) {
+        eventsByType[key].year = dayjs(eventsByType[key].date_iso).year()
+      }
     })
 
     if (eventsByType.prescription && eventsByType.approbation) {

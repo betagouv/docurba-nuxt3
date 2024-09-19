@@ -44,6 +44,7 @@ export default defineEventHandler(async (event) => {
 
     const mapedCollectivites = collectivites.map((c) => {
       let scot = _.mapValues(sudocuhScots, key => _.get(c, key, ''))
+
       return scot
     })
 
