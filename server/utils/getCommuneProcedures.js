@@ -1,22 +1,4 @@
 import _ from 'lodash'
-import dayjs from 'dayjs'
-
-const eventsCategs = {
-  approbation: ["Délibération d'approbation", "Arrêté d'abrogation", "Arrêté du Maire ou du Préfet ou de l'EPCI", 'Approbation du préfet'],
-  arret: ['Arrêt de projet'],
-  pac: ['Porter à connaissance'],
-  deliberation: ["Délibération de l'Etab Pub sur les modalités de concertation", "Délibération de l'Etablissement Public"],
-  pacComp: ['Porter à connaissance complémentaire'],
-  prescription: [
-    'Prescription',
-    "Délibération de prescription du conseil municipal ou communautaire",
-    "Délibération de prescription du conseil municipal",
-    "Delibération de l'établissement public", "Délibération de l'Etablissement Public", // SCOT
-    'Publication de périmètre', 'Publication périmètre' // SCOT
-  ],
-  exec: ['Caractère exécutoire'],
-  fin: ["Fin d'échéance"]
-}
 
 const proceduresCategs = {
   revision: ['Révision', 'Révision allégée (ou RMS)', 'Révision simplifiée'],
@@ -26,40 +8,6 @@ const proceduresCategs = {
 // function logProcedures(procedures, logName = 'logProcedures') {
 //   return console.log(logName, procedures.map(p => `${p.id} ${p.doc_type} ${p.type} ${p.prescription?.date_iso} ${p.procedures_perimetres.length}: ${p.events.length}`))
 // }
-
-function getFullDocType(procedure) {
-  if (procedure.doc_type === 'PLU') {
-    let docType = procedure.doc_type
-    if (procedure.communesPerimetres.length > 1) {
-      docType += 'i'
-      if (procedure.isSectoriel && (procedure.status === 'opposable' || procedure.status === 'en cours')) {
-        docType += 's'
-      }
-    }
-
-    return docType
-  } else { return procedure.doc_type }
-}
-
-function sortProceduresByEvenCateg(procedures, eventCateg) {
-  // ASK CLAIRE: Quelle est la règle si CC en cour + PLUi en cours.
-  // return orderBy(procedures, [
-  //   p => p.procedures_perimetres.length,
-  //   p => p[eventCateg]?.date_iso
-  // ], ['desc', 'desc'])
-
-  return procedures.sort((a, b) => {
-    const dateA = a[eventCateg] ? +dayjs(a[eventCateg].date_iso) : 0
-    const dateB = b[eventCateg] ? +dayjs(b[eventCateg].date_iso) : 0
-
-    return dateB - dateA
-  })
-}
-
-// This assume that events are sorted in chronological order
-function findEventByType(events, types) {
-  return events.find(e => types.includes(e.type))
-}
 
 function filterProcedures(procedures) {
   const proceduresByStatus = _.groupBy(procedures, 'status')
@@ -73,33 +21,6 @@ function filterProcedures(procedures) {
     opposables: sortProceduresByEvenCateg(opposables, 'prescription'),
     currents: sortProceduresByEvenCateg(currents, 'prescription')
   }
-}
-
-async function enrichProcedures(inseeCode, procedures) {
-  return await Promise.all(procedures.filter(p => !p.archived).map(async (procedure) => {
-    const eventsByType = {}
-
-    Object.keys(eventsCategs).forEach((key) => {
-      eventsByType[key] = findEventByType(procedure.events, eventsCategs[key])
-    })
-
-    if (eventsByType.prescription && eventsByType.approbation) {
-      eventsByType.approbationDelay = dayjs(eventsByType.approbation.date_iso).diff(eventsByType.prescription.date_iso, 'day')
-    }
-
-    const groupement = await findGroupement({ code: procedure.collectivite_porteuse_id })
-    const perim = procedure.procedures_perimetres.filter(c => c.collectivite_type === 'COM')
-
-    const enrichedProcedure = Object.assign({
-      communesPerimetres: perim,
-      isSelfPorteuse: procedure.collectivite_porteuse_id === inseeCode,
-      isSectoriel: groupement ? groupement.membres.filter(m => m.type === 'COM').length > perim.length : false
-    }, eventsByType, procedure)
-
-    enrichedProcedure.docType = getFullDocType(enrichedProcedure)
-
-    return enrichedProcedure
-  }))
 }
 
 async function getCommuneMetadata(commune) {
@@ -132,7 +53,11 @@ async function getCommuneMetadata(commune) {
 
 async function enrichCommune(commune, procedures) {
   const enrichedCommune = await getCommuneMetadata(commune)
-  const enrichedProcedures = await enrichProcedures(commune.code, procedures)
+  const enrichedProcedures = await enrichProcedures(procedures)
+
+  enrichedProcedures.forEach(p => {
+    p.isSelfPorteuse = p.collectivite_porteuse_id === commune.code
+  })
 
   const {
     opposables: scotOpposables,

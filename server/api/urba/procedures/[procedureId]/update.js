@@ -8,7 +8,7 @@ async function updateStatus (procedureId) {
 
     if(procedurePerim && procedurePerim.length) {
 
-    const procedures = await fetchProcedures(procedurePerim.map(c => c.collectivite_code))
+    const procedures = await fetchCommunesProcedures(procedurePerim.map(c => c.collectivite_code))
 
     for (let i = 0; i < procedurePerim.length; i++) {
       const {collectivite_code, collectivite_type} = procedurePerim[i]

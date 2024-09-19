@@ -3,7 +3,7 @@ export default async function (query) {
     type: 'COM'
   }, query))
   
-  const procedures = await fetchProcedures(filteredCommunes.map(c => c.code))
+  const procedures = await fetchCommunesProcedures(filteredCommunes.map(c => c.code))
 
   const time = Date.now()
   const communes = [];
