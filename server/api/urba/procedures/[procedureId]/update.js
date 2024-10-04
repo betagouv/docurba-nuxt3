@@ -44,6 +44,17 @@ async function updateStatus (procedureId) {
           collectivite_type,
           procedure_id: plan.id
         })
+
+        // if(plan.communesPerimetres.length > 1) {
+        //   for (let j = 0; j < enrichedCommune.planCurrents.length; j++) {
+        //     const currentProcedure = enrichedCommune.planCurrents[j]
+        //     if(currentProcedure.communesPerimetres.length === 1) {
+        //       await supabase.from('procedures').update({
+        //         status: 'abandon'
+        //       }).eq('id', currentProcedure.id)
+        //     }
+        //   }
+        // }
       }
 
       if(scot) {

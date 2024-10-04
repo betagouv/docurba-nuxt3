@@ -108,6 +108,7 @@ async function enrichCommune(commune, procedures) {
     scotCurrent,
     planOpposable,
     planCurrent,
+    planCurrents,
     revisions,
     modifications,
     collectivitePorteuse,
