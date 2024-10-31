@@ -40,7 +40,7 @@ export default defineCachedFunction(async (query, filters = []) => {
     try {
       const collectiviteId = procedure.collectivite_porteuse_id;
       if (!collectiviteId) {
-          // console.log(`Missing collectiviteId for procedure ID: ${procedure.id}`);
+          console.log(`Missing collectiviteId for procedure ID: ${procedure.id}`);
           enrichedProcedures.push(procedure); // Skip and push the original procedure if collectiviteId is missing
           continue;
       }

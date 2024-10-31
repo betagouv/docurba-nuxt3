@@ -5,9 +5,9 @@ const proceduresCategs = {
   modification: ['Modification', 'Modification simplifiée']
 }
 
-// function logProcedures(procedures, logName = 'logProcedures') {
-//   return console.log(logName, procedures.map(p => `${p.id} ${p.doc_type} ${p.type} ${p.prescription?.date_iso} ${p.procedures_perimetres.length}: ${p.events.length}`))
-// }
+function logProcedures(procedures, logName = 'logProcedures') {
+  return console.log(logName, procedures.map(p => `${p.id} ${p.doc_type} ${p.type} ${p.prescription?.date_iso} ${p.procedures_perimetres.length}: ${p.events.length}`))
+}
 
 function filterProcedures(procedures) {
   const proceduresByStatus = _.groupBy(procedures, 'status')
@@ -71,6 +71,9 @@ async function enrichCommune(commune, procedures) {
     opposables: planOpposables,
     currents: planCurrents
   } = filterProcedures(enrichedProcedures.filter(p => p.doc_type !== 'SCOT'))
+
+  logProcedures(planOpposables, 'planOpposables')
+  logProcedures(planCurrents, 'planCurrents')
 
   const revisions = planCurrents.filter(p => proceduresCategs.revision.includes(p.type))
   const modifications = planCurrents.filter(p => proceduresCategs.modification.includes(p.type))
