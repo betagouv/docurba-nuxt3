@@ -1,0 +1,12 @@
+{
+  "id": "id",
+  "region": "principale.collectivite.region.code",
+  "departement": "principale.collectivite.departement.code",
+  "collectivite_code": "collectivite.code",
+  "type": "type",
+  "type_document_principal": "principale.docType",
+  "id_principal": "secondary_procedure_of",
+  "annee_approbation_principal": "principale.approbation.year",
+  "annee_premier_event": "doc_frise_events[0].year",
+  "annee_creation": "year"
+}

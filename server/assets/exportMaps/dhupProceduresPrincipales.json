@@ -1,0 +1,12 @@
+{
+  "id": "id",
+  "region": "collectivite.region.code",
+  "departement": "collectivite.departement.code",
+  "collectivite_code": "collectivite.code",
+  "type": "type",
+  "type_document": "docType",
+  "annee_approbation": "approbation.year",
+  "nombres_secondaires": "secondaires.length",
+  "derniere_secondaire": "secondaires[0].id",
+  "annee_premier_event_derniere_secondaire": "secondaires[0].doc_frise_events[0].year"
+}

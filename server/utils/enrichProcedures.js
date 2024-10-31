@@ -45,37 +45,47 @@ function findEventByType(events, types) {
 }
 
 export default async function (procedures) {
-  return await Promise.all(procedures.filter(p => !p.archived).map(async (procedure) => {
-    const eventsByType = {}
+    const enrichedProcedures = [];
 
-    const events = procedure.events || sortEvents(procedure.doc_frise_events)
+    for (let i = 0; i < procedures.length; i++) {
+        const procedure = procedures[i];
+        if (procedure.archived) {
+            continue; // Skip archived procedures
+        }
 
-    Object.keys(eventsCategs).forEach((key) => {
-      eventsByType[key] = findEventByType(events, eventsCategs[key])
+        const eventsByType = {};
+        const events = procedure.events || sortEvents(procedure.doc_frise_events);
+        events.forEach(e => e.year = dayjs(e.date_iso).year());
 
-      // Add year
-      if(eventsByType[key]) {
-        eventsByType[key].year = dayjs(eventsByType[key].date_iso).year()
-      }
-    })
+        Object.keys(eventsCategs).forEach((key) => {
+            eventsByType[key] = findEventByType(events, eventsCategs[key]);
 
-    if (eventsByType.prescription && eventsByType.approbation) {
-      eventsByType.approbationDelay = dayjs(eventsByType.approbation.date_iso).diff(eventsByType.prescription.date_iso, 'day')
+            // Add year
+            if (eventsByType[key]) {
+                eventsByType[key].year = dayjs(eventsByType[key].date_iso).year();
+            }
+        });
+
+        if (eventsByType.prescription && eventsByType.approbation) {
+            eventsByType.approbationDelay = dayjs(eventsByType.approbation.date_iso)
+                .diff(eventsByType.prescription.date_iso, 'day');
+        }
+
+        const groupement = await findGroupement({ code: procedure.collectivite_porteuse_id });
+        const perim = procedure.procedures_perimetres.filter(c => c.collectivite_type === 'COM');
+        const departements = _.uniq(perim.map(p => p.departement));
+
+        const enrichedProcedure = Object.assign({
+            communesPerimetres: perim,
+            departements,
+            isInterDepartemental: departements.length > 1,
+            isSectoriel: groupement ? groupement.membres.filter(m => m.type === 'COM').length > perim.length : false,
+        }, eventsByType, procedure);
+
+        enrichedProcedure.docType = getFullDocType(enrichedProcedure);
+
+        enrichedProcedures.push(enrichedProcedure); // Add enriched procedure to the list
     }
 
-    const groupement = await findGroupement({ code: procedure.collectivite_porteuse_id })
-    const perim = procedure.procedures_perimetres.filter(c => c.collectivite_type === 'COM')
-    const departements = _.uniq(perim.map(p => p.departement))
-
-    const enrichedProcedure = Object.assign({
-      communesPerimetres: perim,
-      departements,
-      isInterDepartemental: departements.length > 1,
-      isSectoriel: groupement ? groupement.membres.filter(m => m.type === 'COM').length > perim.length : false
-    }, eventsByType, procedure)
-
-    enrichedProcedure.docType = getFullDocType(enrichedProcedure)
-
-    return enrichedProcedure
-  }))
+    return enrichedProcedures;
 }
