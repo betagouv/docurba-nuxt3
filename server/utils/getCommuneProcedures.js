@@ -72,8 +72,8 @@ async function enrichCommune(commune, procedures) {
     currents: planCurrents
   } = filterProcedures(enrichedProcedures.filter(p => p.doc_type !== 'SCOT'))
 
-  logProcedures(planOpposables, 'planOpposables')
-  logProcedures(planCurrents, 'planCurrents')
+  // logProcedures(planOpposables, 'planOpposables')
+  // logProcedures(planCurrents, 'planCurrents')
 
   const revisions = planCurrents.filter(p => proceduresCategs.revision.includes(p.type))
   const modifications = planCurrents.filter(p => proceduresCategs.modification.includes(p.type))
