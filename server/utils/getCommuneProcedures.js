@@ -40,8 +40,6 @@ async function getCommuneMetadata(commune) {
     delete intercommunalite.departement.communes
   }
 
-  console.log(region.intitule, commune.region)
-
   return Object.assign({
     cog: '2024',
     nouvelle: await isCommuneNouvelle(commune.code),
@@ -51,9 +49,16 @@ async function getCommuneMetadata(commune) {
   }, commune)
 }
 
-async function enrichCommune(commune, procedures) {
+async function enrichCommune(commune, enrichedProcedures) {
+  // < 1ms so max 400ms on a departement.
+  // console.time(`getCommuneMetadata ${commune.code}`)
   const enrichedCommune = await getCommuneMetadata(commune)
-  const enrichedProcedures = await enrichProcedures(procedures)
+  // console.timeEnd(`getCommuneMetadata ${commune.code}`)
+
+  // 0.4s on average. Decided to enrich procedure in batch to avoid enriching same procedure multiple times.
+  // console.time(`enrichProcedures ${commune.code}`)
+  // const enrichedProcedures = await enrichProcedures(procedures)
+  // console.timeEnd(`enrichProcedures ${commune.code}`)
 
   enrichedProcedures.forEach(p => {
     p.isSelfPorteuse = p.collectivite_porteuse_id === commune.code
@@ -121,9 +126,9 @@ async function enrichCommune(commune, procedures) {
   }, enrichedCommune)
 }
 
-export default async function (commune, procedures) {
+export default async function (commune, enrichedProcedures) {
   // const time = Date.now()
-  const enrichedCommune = await enrichCommune(commune, procedures)
+  const enrichedCommune = await enrichCommune(commune, enrichedProcedures)
   // console.log('finished enrichement', commune.code, (Date.now() - time) / 1000)
   return enrichedCommune
 

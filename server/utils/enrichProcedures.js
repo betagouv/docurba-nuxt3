@@ -53,10 +53,13 @@ export default async function (procedures) {
             continue; // Skip archived procedures
         }
 
+        // console.time(`sort Events`)
         const eventsByType = {};
         const events = procedure.events || sortEvents(procedure.doc_frise_events);
         events.forEach(e => e.year = dayjs(e.date_iso).year());
+        // console.timeEnd(`sort Events`)
 
+        // console.time(`find Events type`)
         Object.keys(eventsCategs).forEach((key) => {
             eventsByType[key] = findEventByType(events, eventsCategs[key]);
 
@@ -70,19 +73,30 @@ export default async function (procedures) {
             eventsByType.approbationDelay = dayjs(eventsByType.approbation.date_iso)
                 .diff(eventsByType.prescription.date_iso, 'day');
         }
+        // console.timeEnd(`find Events type`)
 
+        // console.time('find Groupement')
         const groupement = await findGroupement({ code: procedure.collectivite_porteuse_id });
-        const perim = procedure.procedures_perimetres.filter(c => c.collectivite_type === 'COM');
-        const departements = _.uniq(perim.map(p => p.departement));
+        // console.timeEnd(`find Groupement`)
 
+        // console.time('filter perim')
+        const perim = procedure.procedures_perimetres.filter(c => c.collectivite_type === 'COM');
+        // console.timeEnd('filter perim')
+
+        // console.time('list dept')
+        const departements = _.uniq(perim.map(p => p.departement));
+        // console.timeEnd(`list dept`)
+
+        // console.time('object assign')
         const enrichedProcedure = Object.assign({
             communesPerimetres: perim,
             departements,
             isInterDepartemental: departements.length > 1,
             isSectoriel: groupement ? groupement.membres.filter(m => m.type === 'COM').length > perim.length : false,
-        }, eventsByType, procedure);
+        }, eventsByType, procedure)
 
-        enrichedProcedure.docType = getFullDocType(enrichedProcedure);
+        enrichedProcedure.docType = getFullDocType(enrichedProcedure)
+        // console.timeEnd('object assign')
 
         enrichedProcedures.push(enrichedProcedure); // Add enriched procedure to the list
     }

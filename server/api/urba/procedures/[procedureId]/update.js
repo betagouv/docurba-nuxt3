@@ -9,12 +9,13 @@ async function updateStatus (procedureId) {
     if(procedurePerim && procedurePerim.length) {
 
     const procedures = await fetchCommunesProcedures(procedurePerim.map(c => c.collectivite_code))
+    const enrichedProcedures = await enrichProcedures(procedures)
 
     for (let i = 0; i < procedurePerim.length; i++) {
       const {collectivite_code, collectivite_type} = procedurePerim[i]
       const commune = await findCommune({type: collectivite_type, code: collectivite_code})
 
-      await updatePerimetreStatus(commune, procedures)
+      await updatePerimetreStatus(commune, enrichedProcedures)
     }
 
     console.log('finished update status', procedurePerim.length)

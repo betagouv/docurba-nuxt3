@@ -3,6 +3,8 @@ import _ from 'lodash'
 const csvParser = new AsyncParser();
 
 export default defineEventHandler(async (event) => {
+  const time = Date.now()
+
   try {
     const query = getQuery(event)
 
@@ -13,6 +15,8 @@ export default defineEventHandler(async (event) => {
     const mapedCommunes = communes.map((c) => {
       return _.mapValues(sudocuhCommunes, key => _.get(c, key, ''))
     })
+
+    console.log('Returned export in', (Date.now() - time) / 1000)
 
     return csvParser.parse(mapedCommunes)
   } catch (err) {

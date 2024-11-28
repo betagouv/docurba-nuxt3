@@ -1,3 +1,6 @@
+import _ from 'lodash'
+import enrichProcedures from './enrichProcedures';
+
 export default async function (query) {
   const filteredCommunes = await getCommunes(Object.assign({
     type: 'COM'
@@ -8,11 +11,18 @@ export default async function (query) {
   const time = Date.now()
   const communes = [];
 
+  console.time(`enrichProcedures`)
+  const enrichedProcedures = await enrichProcedures(procedures)
+  console.timeEnd(`enrichProcedures`)
+
   for (let i = 0; i < filteredCommunes.length; i++) {
+    // const filterTime = Date.now()
     const commune = filteredCommunes[i];
-    const communeProcedures = procedures.filter(p => {
+    const communeProcedures = enrichedProcedures.filter(p => {
       return !!p.procedures_perimetres.find(c => c.collectivite_code === commune.code);
     })
+
+    // console.log('Filter procedure in', (Date.now() - filterTime) / 1000)
 
     const enrichedCommune = await getCommuneProcedures(commune, communeProcedures)
     communes.push(enrichedCommune);
