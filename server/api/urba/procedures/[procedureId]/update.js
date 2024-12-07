@@ -1,33 +1,39 @@
-async function updateStatus (procedureId) {
-  const {data: procedurePerim, error} = await supabase.from('procedures_perimetres')
-      .select('*').eq('procedure_id', procedureId)
+async function updateStatus(procedureId) {
+  const { data: procedurePerim, error } = await supabase
+    .from("procedures_perimetres")
+    .select("*")
+    .eq("procedure_id", procedureId)
+    .throwOnError()
 
-    if(error) {
-      console.log('error in updateStatus', error, procedureId)
-    }
-
-    if(procedurePerim && procedurePerim.length) {
-
-    const procedures = await fetchCommunesProcedures(procedurePerim.map(c => c.collectivite_code))
-    const enrichedProcedures = await enrichProcedures(procedures)
-
-    for (let i = 0; i < procedurePerim.length; i++) {
-      const {collectivite_code, collectivite_type} = procedurePerim[i]
-      const commune = await findCommune({type: collectivite_type, code: collectivite_code})
-
-      await updatePerimetreStatus(commune, enrichedProcedures)
-    }
-
-    console.log('finished update status', procedurePerim.length)
-  } else {
-    console.log('no perim found')
+  if (!procedurePerim.length) {
+    console.log("no perim found")
+    return
   }
+
+  const procedures = await fetchCommunesProcedures(
+    procedurePerim.map(c => c.collectivite_code)
+  )
+  const enrichedProcedures = await enrichProcedures(procedures)
+
+  const communes = []
+  for (const { collectivite_code, collectivite_type } of procedurePerim) {
+    const commune = await findCommune({
+      type: collectivite_type,
+      code: collectivite_code,
+    })
+    if (commune) {
+      communes.push(commune)
+    }
+  }
+
+  await updatePerimetreStatus(communes, enrichedProcedures)
+
+  console.log("finished update status", procedurePerim.length)
 }
 
-export default defineEventHandler(async (event) => {
-    const procedureId = getRouterParam(event, 'procedureId')
-    await updateStatus(procedureId)
+export default defineEventHandler(async event => {
+  const procedureId = getRouterParam(event, "procedureId")
+  await updateStatus(procedureId)
 
-    return 'OK'
-  })
-  
+  return "OK"
+})
