@@ -13,7 +13,6 @@ export default defineCachedFunction(async (query) => {
   const filteredGroupements = _.filter(groupements, query)
 
   if(populate) {
-    console.log('Start populating', filteredGroupements)
     for (let index = 0; index < filteredGroupements.length; index++) {
       const groupement = filteredGroupements[index]
       const membres = await populateMembres(groupement.membres)
