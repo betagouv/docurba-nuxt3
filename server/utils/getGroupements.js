@@ -4,7 +4,8 @@ export default defineCachedFunction(async (query) => {
   const queryKeys = Object.keys(query)
 
   if(queryKeys.length === 1 && (queryKeys[0] === 'code' || queryKeys[0] === 'siren')) {
-    return await findGroupement(query)
+    const groupement = await findGroupement(query)
+    return groupement ? [groupement] : []
   } else {
     const groupements = await useStorage('assets:server').getItem(`/referentiels/groupements.json`)
     
