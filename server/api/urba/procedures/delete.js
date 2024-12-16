@@ -1,8 +1,12 @@
-async function updateStatus(procedureId) {
+export default defineEventHandler(async (event) => {
+  const { old_record } = await readBody(event)
+
+  // Ca sous entend que les procédures perim ne sont pas delete en cascade.
+  // Est ce qu'on devrait les delete ici après avoir mis à jour le reste des status ?
   const { data: procedurePerim, error } = await supabase
     .from('procedures_perimetres')
     .select('*')
-    .eq('procedure_id', procedureId)
+    .eq('procedure_id', old_record.id)
     .throwOnError()
 
   if (!procedurePerim.length) {
@@ -28,11 +32,6 @@ async function updateStatus(procedureId) {
   await updatePerimetreStatus(communes, enrichedProcedures)
 
   console.log('finished update status', procedurePerim.length)
-}
-
-export default defineEventHandler(async event => {
-  const procedureId = getRouterParam(event, 'procedureId')
-  await updateStatus(procedureId)
 
   return 'OK'
 })
