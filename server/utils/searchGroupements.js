@@ -22,6 +22,6 @@ export default defineCachedFunction(async (query) => {
 
   return filteredGroupements
 }, {
-  name: 'getGroupements',
+  name: 'searchGroupements',
   maxAge: 60 * 60
 })
