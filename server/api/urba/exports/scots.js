@@ -13,7 +13,9 @@ export default defineEventHandler(async (event) => {
 
     const groupedScots = _.groupBy(scots, 'collectivite_porteuse_id')
 
-    const collectivites = _.map(groupedScots, (procedures) => {
+    const exportedScots = []
+
+    const collectivites = _.forEach(groupedScots, (procedures) => {
       const proceduresByStatus = _.groupBy(procedures, 'status')
 
       procedures.forEach(procedure => {
@@ -26,23 +28,55 @@ export default defineEventHandler(async (event) => {
         })
       }) 
 
-      const opposables = sortProceduresByEvenCateg(proceduresByStatus['opposable'] || [])
+      const opposables = sortProceduresByEvenCateg(proceduresByStatus['opposable'] || []).filter(p => {
+        // This filter "precedent" procedures.
+        return !!p.procedures_perimetres.find(c => c.opposable)
+      })
+
       const currents = sortProceduresByEvenCateg((proceduresByStatus['en cours'] || []).filter((p) => {
         return p.from_sudocuh ? !!p.prescription : true
       }))
 
-      return Object.assign({
-        cog: '2024',
-        opposables,
-        currents,
-        opposable: opposables[0],
-        current: currents[0]
-      }, procedures[0].collectivite)
+      // if(opposables.length > 1) {
+      //   console.log('multi opposables', opposables[0].collectivite.code)
+      // }
+
+      // if(currents.length > 1) {
+      //   console.log('multi current', currents[0].collectivite.code)
+      // }
+
+      opposables.forEach(p => {
+        exportedScots.push(Object.assign({
+          cog: '2024',
+          opposables,
+          currents,
+          opposable: p,
+          current: currents[0]
+        }, p.collectivite))
+      })
+
+      currents.forEach(p => {
+        exportedScots.push(Object.assign({
+          cog: '2024',
+          opposables,
+          currents,
+          opposable: opposables[0],
+          current: p
+        }, p.collectivite))
+      })
+
+      // return Object.assign({
+      //   cog: '2024',
+      //   opposables,
+      //   currents,
+      //   opposable: opposables[0],
+      //   current: currents[0]
+      // }, procedures[0].collectivite)
     })
 
     const sudocuhScots = await useStorage('assets:server').getItem(`/exportMaps/sudocuhScots.json`)
 
-    const mapedCollectivites = collectivites.map((c) => {
+    const mapedCollectivites = exportedScots.map((c) => {
       let scot = _.mapValues(sudocuhScots, key => _.get(c, key, ''))
 
       return scot
