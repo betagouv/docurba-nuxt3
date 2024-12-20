@@ -3,19 +3,31 @@ import _ from 'lodash'
 const csvParser = new AsyncParser();
 
 export default defineEventHandler(async (event) => {
+  const query = getQuery(event)
+
+  const status = []
+
+  if (query.pa === 'true') status.push('opposable')
+  if (query.pc === 'true') status.push('en cours')
+  
+  // Default statuses if no conditions are met
+  const defaultStatus = ['opposable', 'en cours']
+  const queryStatus = status.length ? status : defaultStatus
+  
   try {
     const scots = await getProcedures({
       doc_type: 'SCOT',
       is_principale: true,
       archived: false,
-      // id: '72420405-f1cc-4c8d-a526-1e73a9e74d81'
-    })
+    }, [
+      ['in', 'status', queryStatus]
+    ])
 
     const groupedScots = _.groupBy(scots, 'collectivite_porteuse_id')
 
     const exportedScots = []
 
-    const collectivites = _.forEach(groupedScots, (procedures) => {
+    _.forEach(groupedScots, (procedures) => {
       const proceduresByStatus = _.groupBy(procedures, 'status')
 
       procedures.forEach(procedure => {
@@ -45,33 +57,34 @@ export default defineEventHandler(async (event) => {
       //   console.log('multi current', currents[0].collectivite.code)
       // }
 
-      opposables.forEach(p => {
-        exportedScots.push(Object.assign({
-          cog: '2024',
-          opposables,
-          currents,
-          opposable: p,
-          current: currents[0]
-        }, p.collectivite))
-      })
+      // This does not exist.
+      if(currents.length > 1 && opposables > 1) {
+        console.log('multi current and opposables', currents[0].collectivite.code)
+      }
 
-      currents.forEach(p => {
-        exportedScots.push(Object.assign({
-          cog: '2024',
-          opposables,
-          currents,
-          opposable: opposables[0],
-          current: p
-        }, p.collectivite))
-      })
-
-      // return Object.assign({
-      //   cog: '2024',
-      //   opposables,
-      //   currents,
-      //   opposable: opposables[0],
-      //   current: currents[0]
-      // }, procedures[0].collectivite)
+      // We want to avoid duplicated lines. So we only do multiple lines for either opposable or currents.
+      // if you could have both multiple opposable and currents, it seems impossible to determine the correct combinaison.
+      if(opposables.length >= 1) {
+        opposables.forEach(p => {
+          exportedScots.push(Object.assign({
+            cog: '2024',
+            opposables,
+            currents,
+            opposable: p,
+            current: currents[0]
+          }, p.collectivite))
+        })
+      } else {
+        currents.forEach(p => {
+          exportedScots.push(Object.assign({
+            cog: '2024',
+            opposables,
+            currents,
+            opposable: opposables[0],
+            current: p
+          }, p.collectivite))
+        })
+      }
     })
 
     const sudocuhScots = await useStorage('assets:server').getItem(`/exportMaps/sudocuhScots.json`)
