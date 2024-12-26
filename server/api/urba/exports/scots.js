@@ -3,17 +3,31 @@ import _ from 'lodash'
 const csvParser = new AsyncParser();
 
 export default defineEventHandler(async (event) => {
+  const query = getQuery(event)
+
+  const status = []
+
+  if (query.pa === 'true') status.push('opposable')
+  if (query.pc === 'true') status.push('en cours')
+  
+  // Default statuses if no conditions are met
+  const defaultStatus = ['opposable', 'en cours']
+  const queryStatus = status.length ? status : defaultStatus
+  
   try {
     const scots = await getProcedures({
       doc_type: 'SCOT',
       is_principale: true,
       archived: false,
-      // id: '72420405-f1cc-4c8d-a526-1e73a9e74d81'
-    })
+    }, [
+      ['in', 'status', queryStatus]
+    ])
 
     const groupedScots = _.groupBy(scots, 'collectivite_porteuse_id')
 
-    const collectivites = _.map(groupedScots, (procedures) => {
+    const exportedScots = []
+
+    _.forEach(groupedScots, (procedures) => {
       const proceduresByStatus = _.groupBy(procedures, 'status')
 
       procedures.forEach(procedure => {
@@ -26,23 +40,56 @@ export default defineEventHandler(async (event) => {
         })
       }) 
 
-      const opposables = sortProceduresByEvenCateg(proceduresByStatus['opposable'] || [])
+      const opposables = sortProceduresByEvenCateg(proceduresByStatus['opposable'] || []).filter(p => {
+        // This filter "precedent" procedures.
+        return !!p.procedures_perimetres.find(c => c.opposable)
+      })
+
       const currents = sortProceduresByEvenCateg((proceduresByStatus['en cours'] || []).filter((p) => {
         return p.from_sudocuh ? !!p.prescription : true
       }))
 
-      return Object.assign({
-        cog: '2024',
-        opposables,
-        currents,
-        opposable: opposables[0],
-        current: currents[0]
-      }, procedures[0].collectivite)
+      // if(opposables.length > 1) {
+      //   console.log('multi opposables', opposables[0].collectivite.code)
+      // }
+
+      // if(currents.length > 1) {
+      //   console.log('multi current', currents[0].collectivite.code)
+      // }
+
+      // This does not exist.
+      if(currents.length > 1 && opposables > 1) {
+        console.log('multi current and opposables', currents[0].collectivite.code)
+      }
+
+      // We want to avoid duplicated lines. So we only do multiple lines for either opposable or currents.
+      // if you could have both multiple opposable and currents, it seems impossible to determine the correct combinaison.
+      if(opposables.length >= 1) {
+        opposables.forEach(p => {
+          exportedScots.push(Object.assign({
+            cog: '2024',
+            opposables,
+            currents,
+            opposable: p,
+            current: currents[0]
+          }, p.collectivite))
+        })
+      } else {
+        currents.forEach(p => {
+          exportedScots.push(Object.assign({
+            cog: '2024',
+            opposables,
+            currents,
+            opposable: opposables[0],
+            current: p
+          }, p.collectivite))
+        })
+      }
     })
 
     const sudocuhScots = await useStorage('assets:server').getItem(`/exportMaps/sudocuhScots.json`)
 
-    const mapedCollectivites = collectivites.map((c) => {
+    const mapedCollectivites = exportedScots.map((c) => {
       let scot = _.mapValues(sudocuhScots, key => _.get(c, key, ''))
 
       return scot
