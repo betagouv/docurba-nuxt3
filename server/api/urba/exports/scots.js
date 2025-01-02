@@ -1,6 +1,6 @@
-import { AsyncParser } from '@json2csv/node';
+import { AsyncParser } from '@json2csv/node'
 import _ from 'lodash'
-const csvParser = new AsyncParser();
+const csvParser = new AsyncParser()
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
