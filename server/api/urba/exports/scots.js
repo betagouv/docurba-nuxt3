@@ -40,12 +40,13 @@ export default defineEventHandler(async (event) => {
         })
       }) 
 
-      const opposables = sortProceduresByEvenCateg(proceduresByStatus['opposable'] || []).filter(p => {
+      // A voir si Claire préfère ordonné par prescription. Mais de toute manière l'impacte sur l'export SCoT est minime.
+      const opposables = sortProceduresByEvenCateg(proceduresByStatus['opposable'] || [], 'approbation').filter(p => {
         // This filter "precedent" procedures.
         return !!p.procedures_perimetres.find(c => c.opposable)
       })
 
-      const currents = sortProceduresByEvenCateg((proceduresByStatus['en cours'] || []).filter((p) => {
+      const currents = sortProceduresByEvenCateg((proceduresByStatus['en cours'] || [], 'prescription').filter((p) => {
         return p.from_sudocuh ? !!p.prescription : true
       }))
 
