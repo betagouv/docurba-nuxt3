@@ -18,6 +18,7 @@ const eventsCategs = {
     "Délibération de prescription du conseil municipal ou communautaire",
     "Délibération de prescription du conseil municipal",
     "Delibération de l'établissement public", "Délibération de l'Etablissement Public", // SCOT
+    "Délibération de l'établissement public qui prescrit", // SCOT
     'Publication de périmètre', 'Publication périmètre' // SCOT
   ],
   publicationPerim: ['Publication de périmètre', 'Publication périmètre'],
