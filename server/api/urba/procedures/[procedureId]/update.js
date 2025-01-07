@@ -1,18 +1,17 @@
 async function updateStatus(procedureId) {
   const { data: procedurePerim, error } = await supabase
-    .from("procedures_perimetres")
-    .select("*")
-    .eq("procedure_id", procedureId)
+    .from('procedures_perimetres')
+    .select('*')
+    .eq('procedure_id', procedureId)
     .throwOnError()
 
   if (!procedurePerim.length) {
-    console.log("no perim found")
+    console.log('no perim found')
     return
   }
 
-  const procedures = await fetchCommunesProcedures(
-    procedurePerim.map(c => c.collectivite_code)
-  )
+  const communesCodes = procedurePerim.map(c => c.collectivite_code)
+  const procedures = await fetchCommunesProcedures(communesCodes)
   const enrichedProcedures = await enrichProcedures(procedures)
 
   const communes = []
@@ -28,12 +27,12 @@ async function updateStatus(procedureId) {
 
   await updatePerimetreStatus(communes, enrichedProcedures)
 
-  console.log("finished update status", procedurePerim.length)
+  console.log('finished update status', procedurePerim.length)
 }
 
 export default defineEventHandler(async event => {
-  const procedureId = getRouterParam(event, "procedureId")
+  const procedureId = getRouterParam(event, 'procedureId')
   await updateStatus(procedureId)
 
-  return "OK"
+  return 'OK'
 })
