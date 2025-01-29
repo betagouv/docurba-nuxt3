@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 
 function sortEvents(events) {
   return events.sort((a, b) => {
-    return +dayjs(a.date_iso) - +dayjs(b.date_iso)
+    return +dayjs(b.date_iso) - +dayjs(a.date_iso)
   })
 }
 
