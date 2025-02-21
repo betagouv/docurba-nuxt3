@@ -12,8 +12,12 @@ export default async function (query) {
   const communes = [];
 
   console.time(`enrichProcedures`)
-  const enrichedProcedures = await enrichProcedures(procedures)
+  let enrichedProcedures = await enrichProcedures(procedures)
+  // Procedures with no prescriptions should not be in exports.
+  enrichedProcedures = enrichedProcedures.filter(p => !!p.prescription)
   console.timeEnd(`enrichProcedures`)
+
+
 
   for (let i = 0; i < filteredCommunes.length; i++) {
     // const filterTime = Date.now()

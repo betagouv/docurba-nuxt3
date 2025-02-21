@@ -8,9 +8,12 @@ export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
 
-    const principales = await getProcedures(Object.assign({
+    let principales = await getProcedures(Object.assign({
       is_principale: true
     }, query))
+
+    // Procedure principale with no prescription should not appear in exports
+    principales = principales.filter(p => !!p.prescription)
 
     console.log('principales', principales.length)
 
