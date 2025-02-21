@@ -2,6 +2,25 @@ import { AsyncParser } from '@json2csv/node'
 import _ from 'lodash'
 const csvParser = new AsyncParser()
 
+async function getCommunesOfMembers (collectivite) {
+  const communes = []
+
+  const groupement = await findGroupement({code: collectivite.code})
+
+  for (let index = 0; index < groupement.membres.length; index++) {
+    const membre = groupement.membres[index];
+    
+    if(membre.code.length > 5) {
+      const membreCommunes = await getCommunesOfMembers(membre)
+      communes.push(...membreCommunes)
+    } else {
+      communes.push(membre)
+    }
+  }
+
+  return communes
+}
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
 
@@ -22,6 +41,14 @@ export default defineEventHandler(async (event) => {
       ['in', 'status', queryStatus]
     ])
 
+    for (let index = 0; index < scots.length; index++) {
+      const scot = scots[index];
+
+      scot.communes = await getCommunesOfMembers(scot.collectivite)
+
+      // console.log('MEMBRES', scot.collectivite.membres.length, scot.communes.length)
+    }
+
     const groupedScots = _.groupBy(scots, 'collectivite_porteuse_id')
 
     const exportedScots = []
@@ -30,13 +57,18 @@ export default defineEventHandler(async (event) => {
       const proceduresByStatus = _.groupBy(procedures, 'status')
 
       procedures.forEach(procedure => {
-        procedure.zonesBlanche = procedure.collectivite.membres.filter(c => {
+        // console.log(procedure.procedures_perimetres[0], procedure.communes[0])
+
+        procedure.zonesBlanche = procedure.communes.filter(c => {
           const perim = procedure.procedures_perimetres.find(p => {
-            return p.type === c.type && p.collectivite_code === c.code
+            // console.log(p.collectivite_code, c.code, p.collectivite_code === c.code)
+            return p.collectivite_type === c.type && p.collectivite_code == c.code
           })
 
           return c.type === 'COM' && !perim
         })
+
+        // console.log('ZONE BLANCHE', procedure.communes.length, procedure.zonesBlanche.length)
       }) 
 
       const opposables = sortProceduresByEvenCateg(proceduresByStatus['opposable'] || [], 'prescription').filter(p => {
