@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
         })
       }) 
 
-      const opposables = sortProceduresByEvenCateg(proceduresByStatus['opposable'] || [], 'prescription').filter(p => {
+      const opposables = sortProceduresByEvenCateg(proceduresByStatus['opposable'] || [], 'approbation').filter(p => {
         // Cela enlève les procédures précédentes.
         return !!p.procedures_perimetres.find(c => c.opposable)
       })
