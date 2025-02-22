@@ -5,10 +5,6 @@ const proceduresCategs = {
   modification: ['Modification', 'Modification simplifiée']
 }
 
-function logProcedures(procedures, logName = 'logProcedures') {
-  return console.log(logName, procedures.map(p => `${p.id} ${p.doc_type} ${p.type} ${p.prescription?.date_iso} ${p.procedures_perimetres.length}: ${p.events.length}`))
-}
-
 function filterProcedures(procedures) {
   const proceduresByStatus = _.groupBy(procedures, 'status')
 
