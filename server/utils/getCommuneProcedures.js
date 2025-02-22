@@ -14,7 +14,7 @@ function filterProcedures(procedures) {
   })
 
   return {
-    opposables: sortProceduresByEvenCateg(opposables, 'prescription'),
+    opposables: sortProceduresByEvenCateg(opposables, 'approbation'),
     currents: sortProceduresByEvenCateg(currents, 'prescription')
   }
 }
