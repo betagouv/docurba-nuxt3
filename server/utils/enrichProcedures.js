@@ -8,7 +8,7 @@ function sortEvents(events) {
 }
 
 const eventsCategs = {
-  approbation: ["Délibération d'approbation", "Arrêté d'abrogation", "Arrêté du Maire ou du Préfet ou de l'EPCI", 'Approbation du préfet'],
+  approbation: ["Délibération d'approbation", "Arrêté d'abrogation", "Arrêté du Maire ou du Préfet ou de l'EPCI", 'Approbation du préfet', "Délibération d'approbation du conseil municipal ou communautaire"],
   arret: ['Arrêt de projet'],
   pac: ['Porter à connaissance'],
   deliberation: ["Délibération de l'Etab Pub sur les modalités de concertation", "Délibération de l'Etablissement Public"],
