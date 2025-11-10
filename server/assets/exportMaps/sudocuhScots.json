@@ -7,6 +7,7 @@
     "scot_codecollectivite": "code",
     "scot_code_type_collectivite": "type",
     "scot_nom_collectivite": "intitule",
+    "scot_nombre_communes_zone_blanche": "opposable.zonesBlanche.length",
     "pa_nom_schema": "opposable.name",
     "pa_id": "opposable.id",
     "pa_noserie_procedure": "opposable.from_sudocuh",
