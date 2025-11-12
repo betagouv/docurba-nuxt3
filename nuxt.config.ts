@@ -3,6 +3,9 @@ export default defineNuxtConfig({
   modules: ["@nuxt/eslint"],
   compatibilityDate: "2024-04-03",
   devtools: { enabled: true },
+  devServer: {
+    port: '4000',
+  },
   routeRules: {
     "/api/**": {
       cors: true,
