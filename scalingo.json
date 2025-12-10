@@ -1,9 +1,4 @@
 {
-    "env": {
-        "APP_URL": {
-            "generator": "url"
-        }
-    },
     "formation": {
         "web": {
             "amount": 1,
