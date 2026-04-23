@@ -1,5 +1,0 @@
-[tools]
-node = "22"
-
-[tasks."start"]
-run = "npm run dev"
