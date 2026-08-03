@@ -16,9 +16,13 @@ export default async function (inseeCodes) {
 
   const procedures = proceduresRes.filter(p => p.doc_type !== 'SD')
 
-  const { data: events } = await supabase.rpc('events_by_procedures_ids', {
-    procedures_ids: procedures.map(p => p.id)
-  })
+  const procedures_ids = procedures.map(p => p.id)
+
+  const { data: events } = await supabase
+    .from("doc_frise_events")
+    .select()
+    .in('procedure_id', procedures_ids)
+    .throwOnError()
 
   const groupedEvents = _.groupBy(events, event => {
     event.timestamp = +dayjs(event.date_iso)
